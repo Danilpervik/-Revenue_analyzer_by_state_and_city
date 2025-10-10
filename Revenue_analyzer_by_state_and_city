@@ -1,0 +1,1037 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Анализ выручки по штатам и городам</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        header {
+            background: #3498db;
+            color: white;
+            padding: 25px;
+            text-align: center;
+        }
+        
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+        }
+        
+        .description {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .main-content {
+            padding: 30px;
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 30px;
+        }
+        
+        @media (max-width: 900px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .upload-section, .results-section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+        }
+        
+        h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #3498db;
+        }
+        
+        .file-input-container {
+            margin-bottom: 20px;
+        }
+        
+        input[type="file"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px dashed #3498db;
+            border-radius: 5px;
+            background: #eaf2f8;
+            cursor: pointer;
+            margin-bottom: 15px;
+        }
+        
+        select, button {
+            width: 100%;
+            padding: 12px 15px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        
+        select {
+            background: white;
+        }
+        
+        button {
+            background: #3498db;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background 0.3s;
+            font-weight: 600;
+        }
+        
+        button:hover {
+            background: #2980b9;
+        }
+        
+        button:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+        }
+        
+        .loader {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .loader-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: white;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            margin-bottom: 30px;
+        }
+        
+        .results-table th, .results-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .results-table th {
+            background: #3498db;
+            color: white;
+        }
+        
+        .results-table tr:nth-child(even) {
+            background: #f2f2f2;
+        }
+        
+        .results-table tr:hover {
+            background: #e9f7fe;
+        }
+        
+        .stats-container {
+            margin-top: 25px;
+            padding: 20px;
+            background: #eaf2f8;
+            border-radius: 8px;
+            border-left: 4px solid #3498db;
+        }
+        
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding: 8px 0;
+            border-bottom: 1px dashed #ccc;
+        }
+        
+        .stat-value {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .instructions {
+            margin-top: 20px;
+            padding: 15px;
+            background: #fff8e1;
+            border-radius: 5px;
+            border-left: 4px solid #ffc107;
+        }
+        
+        .instructions h3 {
+            margin-bottom: 10px;
+            color: #ff9800;
+        }
+        
+        .instructions ol {
+            padding-left: 20px;
+        }
+        
+        .instructions li {
+            margin-bottom: 8px;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+        
+        .highlight {
+            background: linear-gradient(120deg, #a8edea 0%, #fed6e3 100%);
+            padding: 3px 6px;
+            border-radius: 3px;
+            font-weight: 600;
+        }
+        
+        .instructions-top {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #fff8e1;
+            border-radius: 5px;
+            border-left: 4px solid #ffc107;
+        }
+        
+        .instructions-top h3 {
+            margin-bottom: 10px;
+            color: #ff9800;
+        }
+        
+        .instructions-top ol {
+            padding-left: 20px;
+        }
+        
+        .instructions-top li {
+            margin-bottom: 8px;
+        }
+        
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #3498db;
+        }
+        
+        .tab {
+            padding: 12px 20px;
+            background: #f8f9fa;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+            border-radius: 5px 5px 0 0;
+            margin-right: 5px;
+        }
+        
+        .tab.active {
+            background: #3498db;
+            color: white;
+        }
+        
+        .tab:hover:not(.active) {
+            background: #e9f7fe;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .analysis-type {
+            margin-bottom: 15px;
+        }
+        
+        .analysis-type label {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            cursor: pointer;
+        }
+        
+        .analysis-type input {
+            margin-right: 10px;
+        }
+        
+        .error-message {
+            background: #ffebee;
+            color: #c62828;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            border-left: 4px solid #f44336;
+        }
+        
+        .success-message {
+            background: #e8f5e9;
+            color: #2e7d32;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            border-left: 4px solid #4caf50;
+        }
+        
+        .warning-message {
+            background: #fff3e0;
+            color: #ef6c00;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            border-left: 4px solid #ff9800;
+        }
+        
+        .data-quality-stats {
+            margin-top: 20px;
+            padding: 15px;
+            background: #e8f5e9;
+            border-radius: 5px;
+            border-left: 4px solid #4caf50;
+        }
+        
+        .data-quality-stats h3 {
+            margin-bottom: 10px;
+            color: #2e7d32;
+        }
+        
+        .quality-stat-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            padding: 5px 0;
+        }
+        
+        .quality-stat-value {
+            font-weight: 600;
+        }
+        
+        .yearly-stats {
+            margin-top: 30px;
+            padding: 20px;
+            background: #e3f2fd;
+            border-radius: 8px;
+            border-left: 4px solid #2196f3;
+        }
+        
+        .yearly-stats h3 {
+            margin-bottom: 15px;
+            color: #1565c0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Анализ выручки по штатам и городам</h1>
+            <p class="description">Загрузите CSV-файл с данными о заказах и проанализируйте выручку по штатам и городам за выбранный год</p>
+        </header>
+        
+        <div class="main-content">
+            <div class="upload-section">
+                <h2>Загрузка данных</h2>
+                
+                <div class="instructions-top">
+                    <h3>Как использовать:</h3>
+                    <ol>
+                        <li>Загрузите CSV-файл с данными о заказах</li>
+                        <li>Выберите год для анализа из выпадающего списка</li>
+                        <li>Выберите тип анализа (штаты или города)</li>
+                        <li>Нажмите кнопку "Проанализировать данные"</li>
+                        <li>Просмотрите результаты в таблице и статистике</li>
+                    </ol>
+                </div>
+                
+                <div class="file-input-container">
+                    <input type="file" id="csvFile" accept=".csv">
+                </div>
+                
+                <div id="fileStatus"></div>
+                
+                <div class="year-selector">
+                    <select id="yearSelect" disabled>
+                        <option value="">-- Сначала загрузите файл --</option>
+                    </select>
+                </div>
+                
+                <div class="analysis-type">
+                    <h4>Тип анализа:</h4>
+                    <label>
+                        <input type="radio" name="analysisType" value="states" checked>
+                        Топ-10 штатов по выручке
+                    </label>
+                    <label>
+                        <input type="radio" name="analysisType" value="cities">
+                        Топ-10 городов по выручке
+                    </label>
+                </div>
+                
+                <button id="analyzeBtn" disabled>Проанализировать данные</button>
+                
+                <div class="loader" id="loader">
+                    <div class="loader-spinner"></div>
+                    <p>Обработка данных...</p>
+                </div>
+                
+                <div id="dataQualityStats" class="data-quality-stats" style="display: none;">
+                    <h3>Статистика качества данных</h3>
+                    <div class="quality-stat-item">
+                        <span>Всего строк в файле:</span>
+                        <span class="quality-stat-value" id="totalRows">0</span>
+                    </div>
+                    <div class="quality-stat-item">
+                        <span>Строк с некорректными датами:</span>
+                        <span class="quality-stat-value" id="invalidDateRows">0</span>
+                    </div>
+                    <div class="quality-stat-item">
+                        <span>Строк с пропущенными значениями:</span>
+                        <span class="quality-stat-value" id="missingValuesRows">0</span>
+                    </div>
+                    <div class="quality-stat-item">
+                        <span>Строк с выбросами:</span>
+                        <span class="quality-stat-value" id="outlierRows">0</span>
+                    </div>
+                    <div class="quality-stat-item">
+                        <span>Валидных строк после очистки:</span>
+                        <span class="quality-stat-value" id="validRows">0</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="results-section">
+                <h2>Результаты анализа</h2>
+                
+                <div class="tabs">
+                    <button class="tab active" data-tab="results">Результаты</button>
+                    <button class="tab" data-tab="stats">Статистика</button>
+                    <button class="tab" data-tab="warnings">Предупреждения</button>
+                </div>
+                
+                <div id="resultsContainer" class="tab-content active">
+                    <p>Загрузите файл и выберите год для отображения результатов анализа.</p>
+                </div>
+                
+                <div id="statsContainer" class="tab-content stats-container">
+                    <h3>Статистика за <span id="statsYear"></span> год</h3>
+                    <div class="stat-item">
+                        <span>Общая выручка за год:</span>
+                        <span class="stat-value" id="totalRevenue">-</span>
+                    </div>
+                    <div class="stat-item">
+                        <span>Выручка топ-10:</span>
+                        <span class="stat-value" id="top10Revenue">-</span>
+                    </div>
+                    <div class="stat-item">
+                        <span>Доля топ-10:</span>
+                        <span class="stat-value" id="top10Percentage">-</span>
+                    </div>
+                    <div class="stat-item">
+                        <span>Количество проанализированных записей:</span>
+                        <span class="stat-value" id="recordsCount">-</span>
+                    </div>
+                    
+                    <div class="yearly-stats">
+                        <h3>Общая статистика по годам</h3>
+                        <div class="stat-item">
+                            <span>Общая выручка за <span id="currentYear">-</span> год:</span>
+                            <span class="stat-value" id="yearlyRevenue">-</span>
+                        </div>
+                        <div class="stat-item">
+                            <span>Общая выручка за все года:</span>
+                            <span class="stat-value" id="totalAllYears">-</span>
+                        </div>
+                        <div class="stat-item">
+                            <span>Процент выручки текущего года от всех:</span>
+                            <span class="stat-value" id="yearPercentage">-</span>
+                        </div>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table class="results-table">
+                            <thead>
+                                <tr>
+                                    <th>Год</th>
+                                    <th>Выручка</th>
+                                    <th>Доля от общей</th>
+                                    <th>Количество записей</th>
+                                </tr>
+                            </thead>
+                            <tbody id="yearlyTableBody">
+                                <tr>
+                                    <td colspan="4" style="text-align: center;">Загрузите файл для отображения статистики по годам</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div id="warningsContainer" class="tab-content">
+                    <p>Предупреждения появятся здесь после загрузки файла.</p>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>© 2023 Анализатор выручки | Для корректной работы используйте CSV-файлы с колонками: name, segment, state, city, order_date, ship_mode, sales</p>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const fileInput = document.getElementById('csvFile');
+            const yearSelect = document.getElementById('yearSelect');
+            const analyzeBtn = document.getElementById('analyzeBtn');
+            const resultsContainer = document.getElementById('resultsContainer');
+            const statsContainer = document.getElementById('statsContainer');
+            const warningsContainer = document.getElementById('warningsContainer');
+            const loader = document.getElementById('loader');
+            const tabs = document.querySelectorAll('.tab');
+            const tabContents = document.querySelectorAll('.tab-content');
+            const fileStatus = document.getElementById('fileStatus');
+            const dataQualityStats = document.getElementById('dataQualityStats');
+            
+            const totalRevenueElem = document.getElementById('totalRevenue');
+            const top10RevenueElem = document.getElementById('top10Revenue');
+            const top10PercentageElem = document.getElementById('top10Percentage');
+            const statsYearElem = document.getElementById('statsYear');
+            const recordsCountElem = document.getElementById('recordsCount');
+            
+            // Элементы статистики по годам
+            const currentYearElem = document.getElementById('currentYear');
+            const yearlyRevenueElem = document.getElementById('yearlyRevenue');
+            const totalAllYearsElem = document.getElementById('totalAllYears');
+            const yearPercentageElem = document.getElementById('yearPercentage');
+            const yearlyTableBody = document.getElementById('yearlyTableBody');
+            
+            // Элементы статистики качества данных
+            const totalRowsElem = document.getElementById('totalRows');
+            const invalidDateRowsElem = document.getElementById('invalidDateRows');
+            const missingValuesRowsElem = document.getElementById('missingValuesRows');
+            const outlierRowsElem = document.getElementById('outlierRows');
+            const validRowsElem = document.getElementById('validRows');
+            
+            let csvData = [];
+            let availableYears = [];
+            let warnings = [];
+            let dataQuality = {
+                totalRows: 0,
+                invalidDateRows: 0,
+                missingValuesRows: 0,
+                outlierRows: 0,
+                validRows: 0
+            };
+            
+            // Порог для выбросов
+            const OUTLIER_THRESHOLD = 10000000; // 10 миллионов
+            
+            // Обязательные поля в CSV-файле
+            const requiredFields = ['name', 'segment', 'state', 'city', 'order_date', 'ship_mode', 'sales'];
+            
+            // Переключение табов
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const tabId = tab.getAttribute('data-tab');
+                    
+                    // Убираем активный класс у всех табов и контента
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tabContents.forEach(tc => tc.classList.remove('active'));
+                    
+                    // Добавляем активный класс текущему табу и контенту
+                    tab.classList.add('active');
+                    document.getElementById(tabId + 'Container').classList.add('active');
+                });
+            });
+            
+            // Обработка загрузки файла
+            fileInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                // Сбрасываем предыдущие данные
+                resetUI();
+                
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const text = event.target.result;
+                    validateAndParseCSV(text, file.name);
+                };
+                reader.readAsText(file);
+            });
+            
+            // Проверка и парсинг CSV
+            function validateAndParseCSV(text, fileName) {
+                loader.style.display = 'block';
+                warnings = [];
+                
+                setTimeout(() => {
+                    try {
+                        // Проверяем, не пустой ли файл
+                        if (!text.trim()) {
+                            showError('Файл пуст. Загрузите файл с данными.');
+                            loader.style.display = 'none';
+                            return;
+                        }
+                        
+                        const lines = text.split('\n').filter(line => line.trim() !== '');
+                        dataQuality.totalRows = lines.length - 1; // Минус заголовок
+                        
+                        // Проверяем, есть ли данные кроме заголовков
+                        if (lines.length <= 1) {
+                            showError('Файл не содержит данных, есть только заголовки.');
+                            loader.style.display = 'none';
+                            return;
+                        }
+                        
+                        const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+                        
+                        // Проверяем наличие всех обязательных полей
+                        const missingFields = requiredFields.filter(field => !headers.includes(field));
+                        
+                        if (missingFields.length > 0) {
+                            showError(`В файле отсутствуют обязательные поля: ${missingFields.join(', ')}.`);
+                            loader.style.display = 'none';
+                            return;
+                        }
+                        
+                        // Проверяем, нет ли лишних полей
+                        const extraFields = headers.filter(header => !requiredFields.includes(header));
+                        if (extraFields.length > 0) {
+                            warnings.push(`В файле присутствуют дополнительные поля: ${extraFields.join(', ')}. Они будут проигнорированы.`);
+                        }
+                        
+                        // Находим индексы нужных колонок
+                        const nameIndex = headers.indexOf('name');
+                        const segmentIndex = headers.indexOf('segment');
+                        const stateIndex = headers.indexOf('state');
+                        const cityIndex = headers.indexOf('city');
+                        const orderDateIndex = headers.indexOf('order_date');
+                        const shipModeIndex = headers.indexOf('ship_mode');
+                        const salesIndex = headers.indexOf('sales');
+                        
+                        csvData = [];
+                        availableYears = new Set();
+                        
+                        // Парсим данные, начиная со второй строки (первая - заголовки)
+                        for (let i = 1; i < lines.length; i++) {
+                            if (!lines[i].trim()) continue;
+                            
+                            const cells = lines[i].split(',');
+                            if (cells.length < headers.length) {
+                                dataQuality.invalidDateRows++;
+                                continue;
+                            }
+                            
+                            const name = cells[nameIndex].trim();
+                            const segment = cells[segmentIndex].trim();
+                            const state = cells[stateIndex].trim();
+                            const city = cells[cityIndex].trim();
+                            const orderDate = cells[orderDateIndex].trim();
+                            const shipMode = cells[shipModeIndex].trim();
+                            const sales = parseFloat(cells[salesIndex].trim());
+                            
+                            // Проверяем на пропущенные значения
+                            let hasMissingValues = false;
+                            if (!name || !segment || !state || !city || !orderDate || !shipMode) {
+                                dataQuality.missingValuesRows++;
+                                hasMissingValues = true;
+                            }
+                            
+                            // Проверяем корректность даты
+                            let hasDateError = false;
+                            if (orderDate) {
+                                const dateParts = orderDate.split('-');
+                                if (dateParts.length !== 3 || isNaN(new Date(orderDate).getTime())) {
+                                    hasDateError = true;
+                                    dataQuality.invalidDateRows++;
+                                }
+                            } else {
+                                hasDateError = true;
+                                dataQuality.invalidDateRows++;
+                            }
+                            
+                            // Проверяем на выбросы (отрицательные или больше порога)
+                            let isOutlier = false;
+                            if (!isNaN(sales) && (sales < 0 || sales > OUTLIER_THRESHOLD)) {
+                                isOutlier = true;
+                                dataQuality.outlierRows++;
+                            }
+                            
+                            // Проверяем, является ли строка валидной
+                            const isValid = name && state && orderDate && 
+                                          !isNaN(sales) && sales >= 0 && 
+                                          sales <= OUTLIER_THRESHOLD && 
+                                          !hasDateError && 
+                                          !hasMissingValues;
+                            
+                            if (isValid) {
+                                const year = orderDate.split('-')[0];
+                                availableYears.add(year);
+                                
+                                csvData.push({
+                                    name: name,
+                                    segment: segment,
+                                    state: state,
+                                    city: city,
+                                    year: year,
+                                    ship_mode: shipMode,
+                                    sales: sales,
+                                    hasMissingValues: hasMissingValues,
+                                    hasDateError: hasDateError,
+                                    isOutlier: isOutlier
+                                });
+                            }
+                        }
+                        
+                        // Обновляем статистику качества данных
+                        dataQuality.validRows = csvData.length;
+                        updateDataQualityStats();
+                        
+                        // Проверяем наличие данных только для одного года
+                        if (availableYears.size === 1) {
+                            warnings.push(`В данных представлена информация только за ${Array.from(availableYears)[0]} год.`);
+                        }
+                        
+                        // Проверяем размер набора данных
+                        if (dataQuality.validRows < 100) {
+                            warnings.push(`Внимание: набор корректных данных очень мал (${dataQuality.validRows} записей). Результаты могут быть ненадежными.`);
+                        } else if (dataQuality.validRows > 10000) {
+                            warnings.push(`Обнаружен большой набор данных (${dataQuality.validRows} записей). Анализ может занять некоторое время.`);
+                        }
+                        
+                        // Проверяем процент некорректных дат
+                        const invalidDatePercentage = (dataQuality.invalidDateRows / dataQuality.totalRows) * 100;
+                        if (invalidDatePercentage > 5) {
+                            warnings.push(`Высокий процент строк с некорректными датами: ${invalidDatePercentage.toFixed(2)}%. Рекомендуется проверить исходный файл.`);
+                        }
+                        
+                        // Проверяем процент пропущенных значений
+                        const missingValuesPercentage = (dataQuality.missingValuesRows / dataQuality.totalRows) * 100;
+                        if (missingValuesPercentage > 10) {
+                            warnings.push(`Высокий процент строк с пропущенными значениями: ${missingValuesPercentage.toFixed(2)}%.`);
+                        }
+                        
+                        // Проверяем наличие выбросов
+                        if (dataQuality.outlierRows > 0) {
+                            warnings.push(`Обнаружены выбросы в ${dataQuality.outlierRows} строках. Эти строки были исключены из анализа.`);
+                        }
+                        
+                        // Проверяем процент валидных данных
+                        const validPercentage = (dataQuality.validRows / dataQuality.totalRows) * 100;
+                        if (validPercentage < 50) {
+                            warnings.push(`Низкий процент валидных данных: ${validPercentage.toFixed(2)}%. Рекомендуется проверить качество исходного файла.`);
+                        }
+                        
+                        // Показываем предупреждения
+                        displayWarnings();
+                        
+                        // Заполняем выпадающий список годов
+                        yearSelect.innerHTML = '';
+                        availableYears = Array.from(availableYears).sort();
+                        
+                        if (availableYears.length === 0) {
+                            yearSelect.innerHTML = '<option value="">Нет данных о годах</option>';
+                            showWarning('Файл загружен, но не содержит корректных данных для анализа.');
+                        } else {
+                            yearSelect.innerHTML = '<option value="">Выберите год</option>';
+                            availableYears.forEach(year => {
+                                yearSelect.innerHTML += `<option value="${year}">${year}</option>`;
+                            });
+                            showSuccess(`Файл успешно загружен. Найдено ${csvData.length} валидных записей из ${dataQuality.totalRows}.`);
+                        }
+                        
+                        yearSelect.disabled = availableYears.length === 0;
+                        analyzeBtn.disabled = availableYears.length === 0;
+                        
+                        loader.style.display = 'none';
+                    } catch (error) {
+                        showError('Ошибка при обработке файла: ' + error.message);
+                        loader.style.display = 'none';
+                    }
+                }, 100);
+            }
+            
+            // Обработка нажатия кнопки анализа
+            analyzeBtn.addEventListener('click', function() {
+                const selectedYear = yearSelect.value;
+                if (!selectedYear) {
+                    alert('Пожалуйста, выберите год для анализа');
+                    return;
+                }
+                
+                const analysisType = document.querySelector('input[name="analysisType"]:checked').value;
+                analyzeData(selectedYear, analysisType);
+            });
+            
+            // Анализ данных
+            function analyzeData(year, analysisType) {
+                loader.style.display = 'block';
+                
+                setTimeout(() => {
+                    try {
+                        // Фильтруем данные по выбранному году
+                        const yearData = csvData.filter(row => row.year === year);
+                        
+                        let groupByField, entityName;
+                        
+                        if (analysisType === 'cities') {
+                            groupByField = 'city';
+                            entityName = 'Город';
+                        } else {
+                            groupByField = 'state';
+                            entityName = 'Штат';
+                        }
+                        
+                        // Группируем по выбранному полю и суммируем выручку
+                        const entityRevenue = {};
+                        yearData.forEach(row => {
+                            const key = row[groupByField];
+                            if (!key) return; // Пропускаем пустые значения
+                            
+                            if (!entityRevenue[key]) {
+                                entityRevenue[key] = 0;
+                            }
+                            entityRevenue[key] += row.sales;
+                        });
+                        
+                        // Вычисляем общую выручку за год
+                        const totalRevenue = yearData.reduce((sum, row) => sum + row.sales, 0);
+                        
+                        // Преобразуем в массив и сортируем по убыванию выручки
+                        const entityRevenueArray = Object.entries(entityRevenue)
+                            .map(([entity, revenue]) => ({ entity, revenue }))
+                            .sort((a, b) => b.revenue - a.revenue);
+                        
+                        // Берем топ-10
+                        const topEntities = entityRevenueArray.slice(0, 10);
+                        
+                        // Вычисляем выручку топ-10
+                        const top10Revenue = topEntities.reduce((sum, entity) => sum + entity.revenue, 0);
+                        
+                        // Вычисляем долю топ-10
+                        const top10Percentage = totalRevenue > 0 ? (top10Revenue / totalRevenue) * 100 : 0;
+                        
+                        // Создаем таблицу с результатами
+                        let tableHTML = `
+                            <div class="table-responsive">
+                                <table class="results-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Место</th>
+                                            <th>${entityName}</th>
+                                            <th>Выручка</th>
+                                            <th>Доля от общей</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                        `;
+                        
+                        topEntities.forEach((entity, index) => {
+                            const percentage = totalRevenue > 0 ? (entity.revenue / totalRevenue) * 100 : 0;
+                            tableHTML += `
+                                <tr>
+                                    <td>${index + 1}</td>
+                                    <td>${entity.entity}</td>
+                                    <td>${formatCurrency(entity.revenue)}</td>
+                                    <td>${percentage.toFixed(2)}%</td>
+                                </tr>
+                            `;
+                        });
+                        
+                        tableHTML += `
+                                    </tbody>
+                                </table>
+                            </div>
+                        `;
+                        
+                        resultsContainer.innerHTML = tableHTML;
+                        
+                        // Обновляем статистику
+                        totalRevenueElem.textContent = formatCurrency(totalRevenue);
+                        top10RevenueElem.textContent = formatCurrency(top10Revenue);
+                        top10PercentageElem.textContent = `${top10Percentage.toFixed(2)}%`;
+                        statsYearElem.textContent = year;
+                        recordsCountElem.textContent = yearData.length;
+                        
+                        // Обновляем статистику по годам
+                        updateYearlyStats(year);
+                        
+                        loader.style.display = 'none';
+                    } catch (error) {
+                        alert('Ошибка при анализе данных: ' + error.message);
+                        loader.style.display = 'none';
+                    }
+                }, 100);
+            }
+            
+            // Обновление статистики по годам
+            function updateYearlyStats(selectedYear) {
+                // Вычисляем общую выручку за все года
+                const totalAllYears = csvData.reduce((sum, row) => sum + row.sales, 0);
+                
+                // Вычисляем выручку за выбранный год
+                const yearlyRevenue = csvData
+                    .filter(row => row.year === selectedYear)
+                    .reduce((sum, row) => sum + row.sales, 0);
+                
+                // Вычисляем процент
+                const yearPercentage = totalAllYears > 0 ? (yearlyRevenue / totalAllYears) * 100 : 0;
+                
+                // Обновляем элементы
+                currentYearElem.textContent = selectedYear;
+                yearlyRevenueElem.textContent = formatCurrency(yearlyRevenue);
+                totalAllYearsElem.textContent = formatCurrency(totalAllYears);
+                yearPercentageElem.textContent = `${yearPercentage.toFixed(2)}%`;
+                
+                // Создаем таблицу по годам
+                const yearlyStats = {};
+                
+                // Группируем данные по годам
+                csvData.forEach(row => {
+                    if (!yearlyStats[row.year]) {
+                        yearlyStats[row.year] = {
+                            revenue: 0,
+                            count: 0
+                        };
+                    }
+                    yearlyStats[row.year].revenue += row.sales;
+                    yearlyStats[row.year].count += 1;
+                });
+                
+                // Сортируем годы по убыванию
+                const sortedYears = Object.keys(yearlyStats).sort((a, b) => b - a);
+                
+                // Создаем таблицу
+                let tableHTML = '';
+                sortedYears.forEach(year => {
+                    const yearData = yearlyStats[year];
+                    const percentage = totalAllYears > 0 ? (yearData.revenue / totalAllYears) * 100 : 0;
+                    
+                    tableHTML += `
+                        <tr>
+                            <td>${year}</td>
+                            <td>${formatCurrency(yearData.revenue)}</td>
+                            <td>${percentage.toFixed(2)}%</td>
+                            <td>${yearData.count}</td>
+                        </tr>
+                    `;
+                });
+                
+                yearlyTableBody.innerHTML = tableHTML;
+            }
+            
+            // Функции для отображения сообщений
+            function showError(message) {
+                fileStatus.innerHTML = `<div class="error-message">${message}</div>`;
+                resetUI();
+            }
+            
+            function showWarning(message) {
+                fileStatus.innerHTML = `<div class="warning-message">${message}</div>`;
+            }
+            
+            function showSuccess(message) {
+                fileStatus.innerHTML = `<div class="success-message">${message}</div>`;
+            }
+            
+            function displayWarnings() {
+                if (warnings.length === 0) {
+                    warningsContainer.innerHTML = '<div class="success-message">Проблем с качеством данных не обнаружено.</div>';
+                    return;
+                }
+                
+                let warningsHTML = '';
+                warnings.forEach(warning => {
+                    warningsHTML += `<div class="warning-message">${warning}</div>`;
+                });
+                warningsContainer.innerHTML = warningsHTML;
+            }
+            
+            function updateDataQualityStats() {
+                totalRowsElem.textContent = dataQuality.totalRows;
+                invalidDateRowsElem.textContent = dataQuality.invalidDateRows;
+                missingValuesRowsElem.textContent = dataQuality.missingValuesRows;
+                outlierRowsElem.textContent = dataQuality.outlierRows;
+                validRowsElem.textContent = dataQuality.validRows;
+                dataQualityStats.style.display = 'block';
+            }
+            
+            function formatCurrency(value) {
+                return new Intl.NumberFormat('ru-RU', {
+                    style: 'currency',
+                    currency: 'USD',
+                    minimumFractionDigits: 2
+                }).format(value);
+            }
+            
+            function resetUI() {
+                yearSelect.innerHTML = '<option value="">-- Сначала загрузите файл --</option>';
+                yearSelect.disabled = true;
+                analyzeBtn.disabled = true;
+                resultsContainer.innerHTML = '<p>Загрузите файл и выберите год для отображения результатов анализа.</p>';
+                warningsContainer.innerHTML = '<p>Предупреждения появятся здесь после загрузки файла.</p>';
+                totalRevenueElem.textContent = '-';
+                top10RevenueElem.textContent = '-';
+                top10PercentageElem.textContent = '-';
+                statsYearElem.textContent = '';
+                recordsCountElem.textContent = '-';
+                currentYearElem.textContent = '-';
+                yearlyRevenueElem.textContent = '-';
+                totalAllYearsElem.textContent = '-';
+                yearPercentageElem.textContent = '-';
+                yearlyTableBody.innerHTML = '<tr><td colspan="4" style="text-align: center;">Загрузите файл для отображения статистики по годам</td></tr>';
+                csvData = [];
+                availableYears = [];
+                warnings = [];
+                dataQualityStats.style.display = 'none';
+                dataQuality = {
+                    totalRows: 0,
+                    invalidDateRows: 0,
+                    missingValuesRows: 0,
+                    outlierRows: 0,
+                    validRows: 0
+                };
+            }
+        });
+    </script>
+</body>
+</html>
